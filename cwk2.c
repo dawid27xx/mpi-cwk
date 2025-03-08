@@ -80,7 +80,60 @@ int main( int argc, char **argv )
     // Task 1: Calculate the mean using all available processes.
     //
     float mean = 0.0f;          // Your calculated mean should be placed in this variable.
+    MPI_Bcast(&globalSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    // Calculate local data size
+    float *localData = (float *)malloc(localSize * sizeof(float));
+
+    // Rank 0 sends data to all other ranks
+    if (rank == 0)
+    {
+        for (int p = 1; p < numProcs; p++)
+        {
+            MPI_Send(&globalData[p * localSize], localSize, MPI_FLOAT, p, 0, MPI_COMM_WORLD);
+        }
+        // Rank 0 copies its own data
+        for (i = 0; i < localSize; i++)
+        {
+            localData[i] = globalData[i];
+        }
+    }
+    else
+    {
+        // Other ranks receive their chunk
+        MPI_Recv(localData, localSize, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    }
+
+    // Compute local sum
+    float localSum = 0.0f;
+    for (i = 0; i < localSize; i++)
+    {
+        localSum += localData[i];
+    }
+    float localMean = localSum / localSize;
+
+    // Rank 0 collects local means from all processes
+    if (rank == 0)
+    {
+        float temp = localMean;
+        for (int p = 1; p < numProcs; p++)
+        {
+            float receivedMean;
+            MPI_Recv(&receivedMean, 1, MPI_FLOAT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            temp += receivedMean;
+        }
+        mean = temp / numProcs;
+    }
+    else
+    {
+        // Other ranks send their local mean to rank 0
+        MPI_Send(&localMean, 1, MPI_FLOAT, 0, 0, MPI_COMM_WORLD);
+    }
+
+    // // Cleanup
+    // free(localData);
+    // if (rank == 0)
+    //     free(globalData);
 
     //
     // Task 2. Calculate the variance using all processes.
