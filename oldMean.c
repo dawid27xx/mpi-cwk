@@ -80,12 +80,62 @@ int main( int argc, char **argv )
     // Task 1: Calculate the mean using all available processes.
     //
     float mean = 0.0f;          // Your calculated mean should be placed in this variable.
+    float collectiveMean[numProcs]; 
 
+    // distribute local size
+    MPI_Bcast(&localSize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Calculate initialise localData 
+    float *localData = (float *)malloc(localSize * sizeof(float));
+
+    // Distribute globalData
+    MPI_Scatter(globalData, localSize, MPI_FLOAT, localData, localSize, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+    // calculate local mean
+    float localMean = 0.0f;
+    float sum = 0.0f;
+    for (int i=0; i<localSize; i++) {
+        sum += localData[i];
+    };
+
+    localMean = sum / localSize;
+
+    // Gather local means
+    MPI_Gather(&localMean, 1, MPI_FLOAT, collectiveMean, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+
+    // !! consider if the amount of elements if guaranteed to be the same per process
+    if (rank==0) {
+        float tempMean = 0.0f;
+        for (int i=0; i<numProcs; i++) {
+            tempMean += collectiveMean[i];
+        }
+        mean = tempMean / numProcs;
+    }
 
     //
     // Task 2. Calculate the variance using all processes.
     //
     float variance = 0.0f;      // Your calculated variance should be placed in this variable.
+
+    MPI_Bcast(&mean, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+    float sumSqrd = 0.0f;
+    float collectiveVariance[numProcs];
+
+    for (int i=0; i<localSize; i++) {
+        sumSqrd += ((localData[i] - mean) * (localData[i] - mean));
+    }
+
+    MPI_Gather(&sumSqrd, 1, MPI_FLOAT, collectiveVariance, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        float totalSumSqrd = 0.0f;
+        for (int i = 0; i < numProcs; i++) {
+            totalSumSqrd += collectiveVariance[i];  
+        }
+        variance = totalSumSqrd / globalSize;
+    }
 
 
     //
