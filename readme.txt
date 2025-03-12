@@ -24,7 +24,14 @@ No. Machines:   Total No. Processes:     Mean time (average of 3 runs) in second
 2                       16                                                                                                                       
 2                       32                                                                                                            
 
-Please state the number of cores per machine (for Bragg 2.05, this is typically 12):
+Please state the number of cores per machine (for Bragg 2.05, this is typically 12): 16
 
 A brief interpretation of your results:
+
+(1,1) = 0.00512395, 0.0051244,  0.00500122 => 
+(1,2) = 0.00356875, 0.00367536, 0.00405483 =>
+(1,4) = 0.00287683, 0.00272203, 0.00308394 =>
+(1,8) = 0.00185082, 0.00226172, 0.00164343 =>
+(2,8) = 
+(2,16) = 
 
