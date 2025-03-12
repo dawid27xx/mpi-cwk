@@ -112,20 +112,26 @@ int main( int argc, char **argv )
     //
     float variance = 0.0f;     
 
-    if (numProcs > 1) {
-        if (rank == 0) { // root
-            MPI_Send(&mean, 1, MPI_FLOAT, 1, 0, MPI_COMM_WORLD);
-            MPI_Send(&mean, 1, MPI_FLOAT, 2, 0, MPI_COMM_WORLD);
-        } else if (rank > 0) {
-            MPI_Recv(&mean, 1, MPI_FLOAT, ((rank-1)/2), 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); // receive from parent
-            if ((2 * rank + 1) < numProcs) {
-                MPI_Send(&mean, 1, MPI_FLOAT, (2*rank + 1), 0, MPI_COMM_WORLD); // left child
-            };
-            if ((2 * rank + 2) < numProcs) {
-                MPI_Send(&mean, 1, MPI_FLOAT, (2*rank + 2), 0, MPI_COMM_WORLD); // right child
-            };
-        };
-    };
+    int lev=1;
+    while (1<<lev<=numProcs) {lev++;};
+
+
+    for (int i=0; i<lev-1; i++) {
+        int step = 1 << i; // 2^i, e.g 1,2,4,... 
+
+        if (rank < step) { // 0...2^(i-1) are senders, e.g [0] (x<1 = x<2^0), [0,1] (x<2, = x<2^1), [0,1,2,3] (x<3 = x<2^2)
+            int dest = rank + step; // [0] -> [0+1], [0+2,1+2] -> [2, 3], [0+4,1+4,2+4,3+4] -> [4,5,6,7]
+            if (dest < numProcs) { // safety check
+                MPI_Send(&mean, 1, MPI_FLOAT, dest, 0, MPI_COMM_WORLD);
+            }
+        }
+
+        else if (rank < (step << 1)) { // RHS of array, e.g [0,1 | 2,3] i=1, step=2, 2 <= ranks < 4 receive 
+            int source = rank - step; // opposite of dest calculation
+            MPI_Recv(&mean, 1, MPI_FLOAT, source, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
+    } 
+
 
     float sumSqrd = 0.0f;
     float localVariance = 0.0f;
@@ -178,6 +184,8 @@ int main( int argc, char **argv )
     // Free all resources (including any memory you have dynamically allocated), then quit.
     //
     if( rank==0 ) free( globalData );
+
+    free(localData);
 
     MPI_Finalize();
 
