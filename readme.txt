@@ -28,10 +28,11 @@ Please state the number of cores per machine (for Bragg 2.05, this is typically 
 
 A brief interpretation of your results:
 
-The speedup increased as the number of processes increased on a single machine.
-However, introducing a second machine caused a drastic performance decrease,
+The speedup increased as the number of processes increased on a single machine, however with the rate of increase
+in speed up decreasing as the amount of processes increased. Introducing a second machine caused a drastic performance decrease,
 likely due to the overhead of inter-machine communication. The performance remained rougly the same for 16 and 32 
-processes indicating that the communication overhead vastly outweighed the increase in the number of processes. 
+processes indicating that the communication overhead vastly outweighed the benefit of increased processes, possibly
+indicating that more machines are only worth considerating for a much larger dataset or more complex calculations.
 
 
 
