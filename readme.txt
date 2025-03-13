@@ -17,14 +17,26 @@ For the parallel speed-up S, please note that:
 
 No. Machines:   Total No. Processes:     Mean time (average of 3 runs) in seconds:        Parallel speed-up, S:
 =============   ====================     =========================================        =====================
-1                       1                 0.0050831900000000005                           1.00                                                 
-1                       2                 0.0037663133333333335                           1.349646192                                                                                        
-1                       4                 0.0028942666666666663                           1.756296396                                                                  
-1                       8                 0.0019186566666666665                           2.649348417                                                  
-2                       16                0.024339299999999998                            0.2088470088                                                                           
-2                       32                0.024387933333333334                            0.2084305353                                                                
+1                       1                 0.00508                                          1.00                                                 
+1                       2                 0.00377                                          1.34965                                                                                        
+1                       4                 0.00289                                          1.75630                                                                  
+1                       8                 0.00192                                          2.64935
+2                       16                0.02434                                          0.20885                                                                           
+2                       32                0.02439                                          0.20843                                                                
 
 Please state the number of cores per machine (for Bragg 2.05, this is typically 12): 16
 
 A brief interpretation of your results:
+
+The speedup increased as the number of processes increased on a single machine.
+However, introducing a second machine caused a drastic performance decrease,
+likely due to the overhead of inter-machine communication. The performance remained rougly the same for 16 and 32 
+processes indicating that the communication overhead vastly outweighed the increase in the number of processes. 
+
+
+
+
+
+
+
 
